@@ -1,27 +1,36 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { GetVotesFromVideo } from "../../../Functions/GetVotes";
 import { GetComments } from "../../../Functions/GetYoutubeComments";
-import { YouTubeComment } from "../../../Interfaces/Comment";
+import { VoteOptions, YouTubeComment } from "../../../Interfaces/Comment";
 
-interface Data {
-  comments: YouTubeComment[];
-  length: number;
+interface VoteRequest extends NextApiRequest {
+  body: {
+    options: string[];
+  };
 }
 
 export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data | string>
+  req: VoteRequest,
+  res: NextApiResponse<any>
 ) {
   const params = req.query;
   const youtubeVideoId = params.videoId?.toString() || "";
+  const apiKey = params.apiKey?.toString() || "";
   if (youtubeVideoId === "") {
     res.status(400).send("Wrong format for YouTube Video ID string");
     return;
   }
 
-  const comments = await GetComments(youtubeVideoId);
+  if (apiKey === "") {
+    res.status(401).send("You must supply a API key");
+    return;
+  }
 
-  res.send({
-    length: comments.length,
-    comments: comments,
-  });
+  const body = req.body;
+  const voteOptions: VoteOptions = {
+    options: body.options,
+  };
+
+  const result = await GetVotesFromVideo(youtubeVideoId, voteOptions);
+  res.json(result);
 }

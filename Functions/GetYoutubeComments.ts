@@ -1,6 +1,6 @@
 import { YouTubeComment } from "../Interfaces/Comment";
 
-export const GetComments = async (youtubeId: string) => {
+export const GetComments = async (youtubeId: string, maxComments?: number) => {
   const key = process.env.YOUTUBE_SECRET;
   const textFormat = "plainText";
   const part = "snippet";
@@ -23,6 +23,10 @@ export const GetComments = async (youtubeId: string) => {
     });
 
     pageToken = data.nextPageToken;
+
+    if (maxComments !== undefined && finalComments.length >= maxComments) {
+      break;
+    }
   }
 
   return finalComments;
